@@ -108,11 +108,11 @@ module Weighable
 
     def initialize(value, unit)
       @value = value.to_d
-      @unit  = unit.is_a?(Fixnum) ? unit : unit_from_symbol(unit.to_sym)
+      @unit  = unit.is_a?(Integer) ? unit : unit_from_symbol(unit.to_sym)
     end
 
     def to(unit)
-      new_unit = unit.is_a?(Fixnum) ? unit : unit_from_symbol(unit.to_sym)
+      new_unit = unit.is_a?(Integer) ? unit : unit_from_symbol(unit.to_sym)
       operator, conversion = conversion(@unit, new_unit)
       new_value = @value.public_send(operator, conversion)
       Weight.new(new_value, unit)
