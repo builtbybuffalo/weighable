@@ -7,32 +7,35 @@ module Weighable
     attr_reader :value, :unit
 
     UNIT = {
-      gram:      0,
-      ounce:     1,
-      pound:     2,
-      milligram: 3,
-      kilogram:  4,
-      unit:      5
+      gram:        0,
+      ounce:       1,
+      pound:       2,
+      milligram:   3,
+      kilogram:    4,
+      unit:        5,
+      fluid_ounce: 6
     }.freeze
 
     UNIT_ABBREVIATION = {
-      gram:      'g',
-      ounce:     'oz',
-      pound:     'lb',
-      milligram: 'mg',
-      kilogram:  'kg',
-      unit:      nil
+      gram:        'g',
+      ounce:       'oz',
+      pound:       'lb',
+      milligram:   'mg',
+      kilogram:    'kg',
+      fluid_ounce: 'fl oz',
+      unit:        nil
     }.freeze
 
     ABBREVIATION_ALIASES = {
-      'g'    => :gram,
-      'oz'   => :ounce,
-      'lb'   => :pound,
-      'mg'   => :milligram,
-      'kg'   => :kilogram,
-      'ea'   => :unit,
-      'each' => :unit,
-      nil    => :unit
+      'g'     => :gram,
+      'oz'    => :ounce,
+      'lb'    => :pound,
+      'mg'    => :milligram,
+      'kg'    => :kilogram,
+      'fl oz' => :fluid_ounce,
+      'ea'    => :unit,
+      'each'  => :unit,
+      nil     => :unit
     }.freeze
 
     GRAMS_PER_OUNCE     = BigDecimal.new('28.34952')
@@ -46,63 +49,84 @@ module Weighable
     KILOGRAMS_PER_OUNCE     = GRAMS_PER_OUNCE * KILOGRAMS_PER_GRAM
     MILLIGRAMS_PER_POUND    = GRAMS_PER_POUND * MILLIGRAMS_PER_GRAM
     KILOGRAMS_PER_POUND     = GRAMS_PER_POUND * KILOGRAMS_PER_GRAM
-    KILOGRAMS_PER_MILLIGRAM = MILLIGRAMS_PER_GRAM**2
+    MILLIGRAMS_PER_KILOGRAM = MILLIGRAMS_PER_GRAM**2
+    FLUID_OUNCE_PER_OUNCE   = IDENTITY
 
     CONVERSIONS = {
       UNIT[:unit] => {
         UNIT[:unit] => [:*, IDENTITY]
       },
       UNIT[:gram] => {
-        UNIT[:gram]      => [:*, IDENTITY],
-        UNIT[:ounce]     => [:/, GRAMS_PER_OUNCE],
-        UNIT[:pound]     => [:/, GRAMS_PER_POUND],
-        UNIT[:milligram] => [:*, MILLIGRAMS_PER_GRAM],
-        UNIT[:kilogram]  => [:*, KILOGRAMS_PER_GRAM]
+        UNIT[:gram]        => [:*, IDENTITY],
+        UNIT[:ounce]       => [:/, GRAMS_PER_OUNCE],
+        UNIT[:pound]       => [:/, GRAMS_PER_POUND],
+        UNIT[:milligram]   => [:*, MILLIGRAMS_PER_GRAM],
+        UNIT[:kilogram]    => [:*, KILOGRAMS_PER_GRAM],
+        UNIT[:fluid_ounce] => [:/, GRAMS_PER_OUNCE]
       },
       UNIT[:ounce] => {
         UNIT[:gram]      => [:*, GRAMS_PER_OUNCE],
         UNIT[:ounce]     => [:*, IDENTITY],
         UNIT[:pound]     => [:/, OUNCES_PER_POUND],
         UNIT[:milligram] => [:*, MILLIGRAMS_PER_OUNCE],
-        UNIT[:kilogram]  => [:*, KILOGRAMS_PER_OUNCE]
+        UNIT[:kilogram]  => [:*, KILOGRAMS_PER_OUNCE],
+        UNIT[:fluid_ounce] => [:*, IDENTITY]
       },
       UNIT[:pound] => {
         UNIT[:gram]      => [:*, GRAMS_PER_POUND],
         UNIT[:ounce]     => [:*, OUNCES_PER_POUND],
         UNIT[:pound]     => [:*, IDENTITY],
         UNIT[:milligram] => [:*, MILLIGRAMS_PER_POUND],
-        UNIT[:kilogram]  => [:*, KILOGRAMS_PER_POUND]
+        UNIT[:kilogram]  => [:*, KILOGRAMS_PER_POUND],
+        UNIT[:fluid_ounce] => [:*, OUNCES_PER_POUND]
       },
       UNIT[:milligram] => {
         UNIT[:gram]      => [:/, MILLIGRAMS_PER_GRAM],
         UNIT[:ounce]     => [:/, MILLIGRAMS_PER_OUNCE],
         UNIT[:pound]     => [:/, MILLIGRAMS_PER_POUND],
         UNIT[:milligram] => [:*, IDENTITY],
-        UNIT[:kilogram]  => [:/, KILOGRAMS_PER_MILLIGRAM]
+        UNIT[:kilogram]  => [:/, MILLIGRAMS_PER_KILOGRAM],
+        UNIT[:fluid_ounce] => [:/, MILLIGRAMS_PER_OUNCE]
       },
       UNIT[:kilogram] => {
         UNIT[:gram]      => [:/, KILOGRAMS_PER_GRAM],
         UNIT[:ounce]     => [:/, KILOGRAMS_PER_OUNCE],
         UNIT[:pound]     => [:/, KILOGRAMS_PER_POUND],
-        UNIT[:milligram] => [:*, KILOGRAMS_PER_MILLIGRAM],
-        UNIT[:kilogram]  => [:*, IDENTITY]
+        UNIT[:milligram] => [:*, MILLIGRAMS_PER_KILOGRAM],
+        UNIT[:kilogram]  => [:*, IDENTITY],
+        UNIT[:fluid_ounce] => [:/, KILOGRAMS_PER_OUNCE]
+      },
+      UNIT[:fluid_ounce] => {
+        UNIT[:fluid_ounce] => [:*, IDENTITY],
+        UNIT[:gram]        => [:*, GRAMS_PER_OUNCE],
+        UNIT[:ounce]       => [:*, IDENTITY],
+        UNIT[:pound]       => [:/, OUNCES_PER_POUND],
+        UNIT[:milligram]   => [:*, MILLIGRAMS_PER_OUNCE],
+        UNIT[:kilogram]    => [:*, KILOGRAMS_PER_OUNCE],
       }
     }.freeze
 
     def self.parse(string)
-      value, unit = string.split(' ')
-      from_value_and_unit(value, unit)
+      trimmed = string.strip
+      unit_start = trimmed.index(' ')
+      if unit_start
+        unit = trimmed.slice!(unit_start + 1..-1)
+        value = trimmed.slice!(0..unit_start - 1)
+        from_value_and_unit(value, unit)
+      else
+        from_value_and_unit(trimmed, nil)
+      end
     end
 
     def self.from_value_and_unit(value, unit)
       unit = parse_unit(unit)
-      fail ArgumentError, 'invalid weight' if unit.nil? || value.nil?
+      fail ArgumentError, 'invalid weight' if unit.nil? || value.to_s.strip.empty?
       Weight.new(value, unit)
     end
 
     def self.parse_unit(unit)
       unit = ActiveSupport::Inflector.singularize(unit.downcase) unless unit.nil?
-      unit_symbol = unit ? unit.to_sym : unit
+      unit_symbol = unit ? unit.tr(' ', '_').to_sym : unit
       UNIT[unit_symbol] || ABBREVIATION_ALIASES[unit]
     end
 
@@ -194,8 +218,19 @@ module Weighable
     end
 
     def round(precision = 0)
-      @value = @value.round(precision)
-      self
+      Weight.new(@value.round(precision), @unit)
+    end
+
+    def ceil(precision = 0)
+      Weight.new(@value.ceil(precision), @unit)
+    end
+
+    def floor(precision = 0)
+      Weight.new(@value.floor(precision), @unit)
+    end
+
+    def abs
+      Weight.new(@value.abs, @unit)
     end
 
     def zero?

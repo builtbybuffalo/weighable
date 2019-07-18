@@ -15,5 +15,7 @@ describe Numeric do
     expect(2.milligram).to eq(Weighable::Weight.new(2, :milligram))
     expect(2.kilograms).to eq(Weighable::Weight.new(2, :kilogram))
     expect(2.kilogram).to eq(Weighable::Weight.new(2, :kilogram))
+    expect(2.fluid_ounces).to eq(Weighable::Weight.new(2, :fluid_ounce))
+    expect(2.fluid_ounce).to eq(Weighable::Weight.new(2, :fluid_ounce))
   end
 end
