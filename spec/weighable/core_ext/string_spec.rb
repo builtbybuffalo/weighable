@@ -15,5 +15,7 @@ describe String do
     expect('2.33'.milligram).to eq(Weighable::Weight.new(BigDecimal.new('2.33'), :milligram))
     expect('2.33'.kilograms).to eq(Weighable::Weight.new(BigDecimal.new('2.33'), :kilogram))
     expect('2.33'.kilogram).to eq(Weighable::Weight.new(BigDecimal.new('2.33'), :kilogram))
+    expect('2.33'.fluid_ounces).to eq(Weighable::Weight.new(BigDecimal.new('2.33'), :fluid_ounce))
+    expect('2.33'.fluid_ounce).to eq(Weighable::Weight.new(BigDecimal.new('2.33'), :fluid_ounce))
   end
 end

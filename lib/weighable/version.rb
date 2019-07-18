@@ -1,3 +1,3 @@
 module Weighable
-  VERSION = '0.10.1'.freeze
+  VERSION = '1.4.0'.freeze
 end

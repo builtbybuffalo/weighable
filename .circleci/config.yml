@@ -1,0 +1,32 @@
+version: 2
+jobs:
+  build:
+    environment:
+      CC_TEST_REPORTER_ID: 0f917edc031f16b4e113269d2a97c6db32df02fb034919c35d95c896d68e5c2a
+    docker:
+      - image: circleci/ruby:2.2.8
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - weighable-{{ checksum "Gemfile" }}
+            - weighable-
+      - run:
+          name: install dependencies
+          command: bundle check || bundle install
+      - save_cache:
+          key: weighable-{{ checksum "Gemfile" }}
+          paths:
+            - vendor/bundle
+      - run:
+          name: Setup Code Climate test-reporter
+          command: |
+            # download test reporter as a static binary
+            curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+            chmod +x ./cc-test-reporter
+      - run:
+          name: Run rspec in parallel
+          command: |
+            ./cc-test-reporter before-build
+            bundle exec rspec --format documentation --format RspecJunitFormatter -o rspec.xml
+            ./cc-test-reporter after-build --exit-code $?

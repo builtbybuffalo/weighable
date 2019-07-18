@@ -13,7 +13,9 @@ module Weighable
 
       def define_setter(column, store_as: :gram, precision: nil)
         define_method "#{column}=" do |weight|
-          weight = Weight.new(weight['value'], weight['unit']) if weight.is_a?(Hash)
+          if weight.respond_to?(:key?) && weight.key?('value') && weight.key?('unit')
+            weight = Weight.new(weight['value'], weight['unit'])
+          end
           original_unit = weight.try(:unit)
 
           if original_unit && original_unit != Weight::UNIT[:unit]
