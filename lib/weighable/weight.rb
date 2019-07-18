@@ -38,12 +38,12 @@ module Weighable
       nil     => :unit
     }.freeze
 
-    GRAMS_PER_OUNCE     = BigDecimal.new('28.34952')
-    GRAMS_PER_POUND     = BigDecimal.new('453.59237')
-    OUNCES_PER_POUND    = BigDecimal.new('16')
-    MILLIGRAMS_PER_GRAM = BigDecimal.new('1000')
-    KILOGRAMS_PER_GRAM  = BigDecimal.new('0.001')
-    IDENTITY            = BigDecimal.new('1')
+    GRAMS_PER_OUNCE     = BigDecimal('28.34952')
+    GRAMS_PER_POUND     = BigDecimal('453.59237')
+    OUNCES_PER_POUND    = BigDecimal('16')
+    MILLIGRAMS_PER_GRAM = BigDecimal('1000')
+    KILOGRAMS_PER_GRAM  = BigDecimal('0.001')
+    IDENTITY            = BigDecimal('1')
 
     MILLIGRAMS_PER_OUNCE    = GRAMS_PER_OUNCE * MILLIGRAMS_PER_GRAM
     KILOGRAMS_PER_OUNCE     = GRAMS_PER_OUNCE * KILOGRAMS_PER_GRAM
@@ -184,7 +184,7 @@ module Weighable
         Weight.new(@value / to_math_value(other), unit_name)
       else
         other = other.to(unit_name)
-        BigDecimal.new(@value / other.value)
+        BigDecimal(@value / other.value)
       end
     end
 
